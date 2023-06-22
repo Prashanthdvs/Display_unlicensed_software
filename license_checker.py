@@ -2,6 +2,8 @@ import tkinter as tk
 import subprocess
 import webbrowser
 import tkinter.font as font
+from tkinter import messagebox
+
 
 def scan_installed_software():
 # Use system APIs or command-line tools to scan for installed software
@@ -15,7 +17,7 @@ def scan_installed_software():
         pass
 
     software_list=[x for x in software_lists if x!="'" and x!='']
-    print(software_list)
+    print(sorted(software_list))
     return software_list
 
 def verify_license(software_list):
@@ -35,6 +37,16 @@ def start_button_clicked():
 
     # Display the list of unlicensed software
     display_unlicensed_software(unlicensed_software)
+
+def uninstall_software(software):
+    try:
+        # Use system command or API to uninstall the software
+        command = ['wmic', 'product', 'where', f'name="{software}"', 'call', 'uninstall']
+        subprocess.check_call(command, shell=True)
+        messagebox.showinfo("Uninstall", f"Successfully uninstalled {software}.")
+        start_button_clicked()
+    except subprocess.CalledProcessError:
+        messagebox.showerror("Uninstall", f"Failed to uninstall {software}.")   
    
 
 def display_unlicensed_software(unlicensed_software):
@@ -45,7 +57,9 @@ def display_unlicensed_software(unlicensed_software):
         for software in unlicensed_software:
             display_area.insert("end", software +'\t\n')
             button = tk.Button(display_area, text="Apply License", padx=4, pady=4,command =lambda:webbrowser.open("https://tools.hcl.com/tool/user/home.aspx"))
+            button1 = tk.Button(display_area, text="Uninstall", padx=4, pady=4, command=lambda software=software: uninstall_software(software))
             display_area.window_create("end-2c", window=button)
+            display_area.window_create("end-2c", window=button1)
     else:
         display_area.insert(tk.END, 'No unlicensed software found.\n')
 
